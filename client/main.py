@@ -37,15 +37,25 @@ def send_check(user, amount, to):
     ok, hashed = process(
         f"(cat check.json && echo {user['hashed_secret']}) | sha256sum")
     if not ok:
-        return {}
+        return False
     hashed = hashed.split(" ")[0]
 
-    # Renommage du fichier du chèque par le hash obtenu précedemment
-    ok, _ = process(f"mv check.json {hashed}.json")
+    # Envoi du chèque au commerçant
+    ok, _ = process(f"mv check.json ../shop/{hashed}.json")
+    return ok
 
 
 if __name__ == "__main__":
     with open("user.json", "r") as f:
         user = json.load(f)
 
-    send_check(user, 10, "gast")
+    print("-------------- CLIENT --------------")
+    print("=> Envoi de chèque")
+
+    try:
+        to = input("Destinataire: ")
+        amount = int(input("Montant: "))
+        ok = send_check(user, amount, to)
+        print("+ Chèque envoyé avec succès") if ok else print("- Chèque non envoyé")
+    except ValueError as err:
+        print(err)
