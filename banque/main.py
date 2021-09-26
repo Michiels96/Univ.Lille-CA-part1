@@ -74,7 +74,7 @@ def create_user():
 
 
 if __name__ == "__main__":
-    print("------------- BANQUE -------------")
+    print("-------------- BANQUE --------------")
     create_banque()
 
     while True:
