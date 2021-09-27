@@ -46,7 +46,7 @@ def verify_check(user, path):
 
     # Vérification du certificat du client
     ok, _ = process(
-        f"(echo {check['from']} > from.tmp && openssl dgst -sha1 -verify ../banque/keys/banque.pub -signature tmp.sign from.tmp)")
+        f"(echo {check['from']} > from.tmp && openssl dgst -sha1 -verify ../bank/keys/bank.pub -signature tmp.sign from.tmp)")
 
     _, _ = process("rm from.tmp tmp.sign")
 
@@ -82,7 +82,7 @@ def send_checks():
     Send accepted checks to the bank
     """
     ok, _ = process(
-        "mv accepted/* ../banque/checks/")
+        "mv accepted/* ../bank/checks/")
     return ok
 
 

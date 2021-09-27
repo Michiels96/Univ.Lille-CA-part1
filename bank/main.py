@@ -32,12 +32,12 @@ def create_banque():
     if not ok:
         return False
 
-    ok, _ = process("openssl genrsa -out keys/banque.rsa 2048")
+    ok, _ = process("openssl genrsa -out keys/bank.rsa 2048")
     if not ok:
         return False
 
     ok, _ = process(
-        "openssl rsa -in keys/banque.rsa -outform PEM -pubout -out keys/banque.pub")
+        "openssl rsa -in keys/bank.rsa -outform PEM -pubout -out keys/bank.pub")
     return ok
 
 
@@ -71,7 +71,7 @@ def create_client(name):
 
     # Création du certificat du client
     ok, _ = process(
-        f"echo {name} > name.tmp && openssl dgst -sha1 -sign keys/banque.rsa -out certificate.sign name.tmp && rm name.tmp")
+        f"echo {name} > name.tmp && openssl dgst -sha1 -sign keys/bank.rsa -out certificate.sign name.tmp && rm name.tmp")
     if not ok:
         return {}
 
@@ -93,7 +93,7 @@ def create_shop(name):
     Creation of a shop with the given name
     """
     # Récuperation de la clef publique de la banque
-    ok, banque_pub = process(f"cat keys/banque.pub")
+    ok, banque_pub = process(f"cat keys/bank.pub")
     if not ok:
         return {}
 
