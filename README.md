@@ -26,11 +26,11 @@ Les contraintes sont:
 
 ## Réalisation
 
-Avant de vous décrire notre protocole, voici une schema du fonctionnement de notre protocole.
+Voici une schema du fonctionnement de notre protocole.
 
 ![Schéma du protocole](doc/archi.png)
 
-> Un certificat est la signature, avec la clef privée de la banque, du nom du client
+> Un certificat est la signature, avec la clef privée de la banque, du nom du client.
 
 ### Création d'un client
 
@@ -100,7 +100,7 @@ Dans le dossier banque, lancez les commandes suivantes:
   ```sh
   $ ./main verify
   ```
-  > Les chèques acceptés seront dans les dossier _accepted_ et les autres dans le dossier _rejected_
+  > Les chèques acceptés seront dans les dossier _accepted_ et les autres dans le dossier _rejected_.
 
 ### client
 
@@ -136,10 +136,10 @@ Dans le dossier shop, lancez les commandes suivantes:
   $ ./main verify
   ```
 
-  > Les chèques acceptés seront dans les dossier _accepted_ et les autres dans le dossier _rejected_
+  > Les chèques acceptés seront dans les dossier _accepted_ et les autres dans le dossier _rejected_.
 
 - Envoi des chèques
   ```sh
   $ ./main send
   ```
-  > Les chèques seront dans le sous dossier _checks_ du dossier _bank_
+  > Les chèques seront dans le sous dossier _checks_ du dossier _bank_.
