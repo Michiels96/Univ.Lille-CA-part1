@@ -1,4 +1,4 @@
-#!/home/baht/env/bin/python3
+#!usr/bin/python3
 
 import subprocess
 import json
@@ -18,12 +18,26 @@ def process(cmd):
         return False, ""
 
 
-def verify_check(filename):
+def init():
+    """
+    """
+    ok, _ = process("mkdir -p checks rejected accepted")
+    return ok
+
+
+def clean():
+    """
+    """
+    ok, _ = process("rm -rf checks rejected accepted")
+    return ok
+
+
+def verify_check(user, path):
     """
     verify if a bank check is valid
     """
     # Convertir le check en ditionnaire
-    with open(filename, "r") as f:
+    with open(path, "r") as f:
         check = json.load(f)
 
     # Convertir le certificat en binaire
@@ -36,24 +50,20 @@ def verify_check(filename):
 
     _, _ = process("rm from.tmp tmp.sign")
 
-    return ok
+    return ok and user["name"] == check["to"]
 
 
-def verify_checks():
+def verify_checks(user):
     """
     Sort checks according if they are accepted or not
     Refused one are stored in the rejected directory
     Valid one are stored in the accepted directory
     """
-    ok, _ = process("mkdir -p rejected accepted")
-    if not ok:
-        return False
-
     checks = os.listdir("checks")
 
     cpt = 0
     for check in checks:
-        if verify_check(f"checks/{check}"):
+        if verify_check(user, f"checks/{check}"):
             cpt += 1
             ok, _ = process(f"mv checks/{check} accepted/")
             if not ok:
@@ -78,15 +88,23 @@ def send_checks():
 
 if __name__ == "__main__":
 
-    _, _ = process("mkdir -p checks")
-
     with open("user.json", "r") as f:
         user = json.load(f)
 
+    if sys.argv[1] == "init":
+        ok = init()
+        print(
+            "+ Commerçant créé avec succès") if ok else print("- Commerçant non créé")
+
+    elif sys.argv[1] == "clean":
+        ok = clean()
+        print(
+            "+ Commerçant effacé avec succès") if ok else print("- Commerçant non effacé")
+
     if sys.argv[1] == "verify":
-        ok = verify_checks()
+        ok = verify_checks(user)
         print(
             "+ Vérification faites avec succès") if ok else print("- Chèques non vérifiés")
     elif sys.argv[1] == "send":
-        ok = send_checks()
+        ok = send_checks(user)
         print("+ Chèques envoyés avec succès") if ok else print("- Chèques non envoyés")
