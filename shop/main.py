@@ -1,4 +1,4 @@
-#!usr/bin/python3
+#!/usr/bin/python3
 
 import subprocess
 import json
@@ -82,7 +82,7 @@ def send_checks():
     Send accepted checks to the bank
     """
     ok, _ = process(
-        "mv accepted/* ../banque/checks/ && rm -rf accepted rejected")
+        "mv accepted/* ../banque/checks/")
     return ok
 
 
@@ -106,5 +106,5 @@ if __name__ == "__main__":
         print(
             "+ Vérification faites avec succès") if ok else print("- Chèques non vérifiés")
     elif sys.argv[1] == "send":
-        ok = send_checks(user)
+        ok = send_checks()
         print("+ Chèques envoyés avec succès") if ok else print("- Chèques non envoyés")
