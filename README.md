@@ -78,7 +78,7 @@ Si cette reconstitution est réussie alors le chèque est valide car la banque e
 
 ### banque
 
-Dans le dossier banque, lancez les commandes suivantes:
+Dans le dossier _bank_, lancez les commandes suivantes:
 
 - Création d'une banque
   ```sh
@@ -104,7 +104,7 @@ Dans le dossier banque, lancez les commandes suivantes:
 
 ### client
 
-Dans le dossier client, lancez les commandes suivantes:
+Dans le dossier _client_, lancez les commandes suivantes:
 
 - Émission d'un chèque
   ```sh
@@ -118,7 +118,7 @@ Dans le dossier client, lancez les commandes suivantes:
 
 ### commerçant
 
-Dans le dossier shop, lancez les commandes suivantes:
+Dans le dossier _shop_, lancez les commandes suivantes:
 
 - Initialisation
   ```sh
