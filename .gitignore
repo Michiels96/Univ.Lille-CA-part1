@@ -3,3 +3,4 @@ keys/
 rejected/
 accepted/
 checks/
+.DS_Store
