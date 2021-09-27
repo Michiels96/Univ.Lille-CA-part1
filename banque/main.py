@@ -1,4 +1,4 @@
-#!/home/baht/env/bin/python3
+#!usr/bin/python3
 
 #
 #
@@ -6,6 +6,8 @@
 
 import subprocess
 import json
+import os
+import sys
 
 
 def process(cmd):
@@ -28,8 +30,9 @@ def hash(cmd):
 
 def create_banque():
     """
+    Creation of the banque
     """
-    ok, _ = process("mkdir -p keys")
+    ok, _ = process("mkdir -p keys checks rejected accepted")
     if not ok:
         return False
 
@@ -39,14 +42,21 @@ def create_banque():
 
     ok, _ = process(
         "openssl rsa -in keys/banque.rsa -outform PEM -pubout -out keys/banque.pub")
-    if not ok:
-        return False
+    return ok
+
+
+def delete_banque():
+    """
+    Delete the banque
+    """
+    ok, _ = process("rm -rf keys checks rejected accepted")
+    return ok
 
 
 def create_client(name):
     """
+    Creation of a client with the given name
     """
-
     # Hashage du nom de l'utilisateur
     ok, hashed_name = hash(f"echo {name} | sha256sum")
     if not ok:
@@ -84,8 +94,8 @@ def create_client(name):
 
 def create_shop(name):
     """
+    Creation of a shop with the given name
     """
-
     # Récuperation de la clef publique de la banque
     ok, banque_pub = process(f"cat keys/banque.pub")
     if not ok:
@@ -97,30 +107,81 @@ def create_shop(name):
     }
 
 
+def verify_check(path):
+    """
+    """
+    # Convertion du chèque en ditionnaire
+    with open(path, "r") as f:
+        check = json.load(f)
+
+    # Hashage du nom de l'utilisateur
+    ok, hashed_name = hash(f"echo {check['from']} | sha256sum")
+    if not ok:
+        False
+
+    # Hashage du secret du client
+    ok, hashed_secret = hash(f"cat keys/{hashed_name}.secret | sha256sum")
+    if not ok:
+        return {}
+
+    # Hashage du chèque + secret hashé du client
+    ok, hashed = hash(
+        f"(cat {path} && echo {hashed_secret}) | sha256sum")
+
+    return ok and hashed == os.path.basename(path).split(".")[0]
+
+
+def verify_checks():
+    """
+    Sort checks according if they are accepted or not
+    Refused one are stored in the rejected directory
+    Valid one are stored in the accepted directory
+    """
+    checks = os.listdir("checks")
+
+    cpt = 0
+    for check in checks:
+        if verify_check(f"checks/{check}"):
+            cpt += 1
+            ok, _ = process(f"mv checks/{check} accepted/")
+            if not ok:
+                return False
+        else:
+            ok, _ = process(f"mv checks/{check} rejected/")
+            if not ok:
+                return False
+
+    print(f"+ Chèques valides: {cpt}/{len(checks)}")
+    return True
+
+
 if __name__ == "__main__":
-    print("-------------- BANQUE --------------")
-    create_banque()
 
-    while True:
-        print("\n=> MENU")
-        print("1: Créer un client")
-        print("2: Créer un commerçant")
-        try:
-            choice = int(input("Votre choix: "))
-            name = input("Entrez votre nom: ")
-            if (choice > 0 and choice < 3):
-                if choice == 1:
-                    dir = "client"
-                    user = create_client(name)
-                else:
-                    dir = "shop"
-                    user = create_shop(name)
+    if sys.argv[1] == "init":
+        ok = create_banque()
+        print(
+            "+ Banque créee avec succès") if ok else print("- Banque non créee")
 
-                with open("user.json", "w") as f:
-                    f.write(json.dumps(user))
+    elif sys.argv[1] == "clean":
+        ok = delete_banque()
+        print(
+            "+ Banque effacée avec succès") if ok else print("- Banque non effacée")
 
-                ok, _ = process(f"mv user.json ../{dir}/")
-                if ok:
-                    print("+ Utilisateur créé avec succès")
-        except ValueError:
-            print("Veuillez saisir soit 1 ou 2")
+    elif sys.argv[1] == "client":
+        with open("user.json", "w") as f:
+            f.write(json.dumps(create_client(sys.argv[2])))
+        ok, _ = process(f"mv user.json ../client/")
+        if ok:
+            print("+ Client créé avec succès")
+
+    elif sys.argv[1] == "shop":
+        with open("user.json", "w") as f:
+            f.write(json.dumps(create_shop(sys.argv[2])))
+        ok, _ = process(f"mv user.json ../shop/")
+        if ok:
+            print("+ Commerçant créé avec succès")
+
+    elif sys.argv[1] == "verify":
+        ok = verify_checks()
+        print(
+            "+ Vérification faites avec succès") if ok else print("- Chèques non vérifiés")
