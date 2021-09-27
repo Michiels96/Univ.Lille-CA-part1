@@ -1,12 +1,10 @@
-#!/home/baht/env/bin/python3
+#!usr/bin/python3
 
-#
-#
-#
 
 import subprocess
 import json
 import datetime as dt
+import argparse
 
 
 def process(cmd):
@@ -41,21 +39,32 @@ def send_check(user, amount, to):
     hashed = hashed.split(" ")[0]
 
     # Envoi du chèque au commerçant
-    ok, _ = process(f"mv check.json ../shop/{hashed}.json")
+    ok, _ = process(f"mv check.json ../shop/checks/{hashed}.json")
     return ok
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description="Send check to a shop"
+    )
+    parser.add_argument(
+        "-amount",
+        type=int,
+        required=True,
+        help="Set the amount of the check",
+    )
+
+    parser.add_argument(
+        "-to",
+        type=str,
+        required=True,
+        help="Set the recipient of the check",
+    )
+    args = parser.parse_args().__dict__
+
     with open("user.json", "r") as f:
         user = json.load(f)
 
-    print("-------------- CLIENT --------------")
-    print("=> Envoi de chèque")
-
-    try:
-        to = input("Destinataire: ")
-        amount = int(input("Montant: "))
-        ok = send_check(user, amount, to)
-        print("+ Chèque envoyé avec succès") if ok else print("- Chèque non envoyé")
-    except ValueError as err:
-        print(err)
+    ok = send_check(user, args["amount"], args["to"])
+    print("+ Chèque envoyé avec succès") if ok else print("- Chèque non envoyé")
