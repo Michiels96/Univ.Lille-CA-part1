@@ -82,23 +82,23 @@ Dans le dossier _bank_, lancez les commandes suivantes:
 
 - Création d'une banque
   ```sh
-  $ ./main init
+  $ ./main.py init
   ```
 - Suppression d'une banque
   ```sh
-  $ ./main clean
+  $ ./main.py clean
   ```
 - Création d'un client
   ```sh
-  $ ./main client <nom du client>
+  $ ./main.py client <nom du client>
   ```
 - Création d'un commerçant
   ```sh
-  $ ./main client <nom du commerçant>
+  $ ./main.py shop <nom du commerçant>
   ```
 - Vérification des chèques
   ```sh
-  $ ./main verify
+  $ ./main.py verify
   ```
   > Les chèques acceptés seront dans les dossier _accepted_ et les autres dans le dossier _rejected_.
 
