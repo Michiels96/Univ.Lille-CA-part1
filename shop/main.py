@@ -5,8 +5,6 @@ import json
 import os
 import sys
 
-NB_BILLS = 0
-
 
 def process(cmd):
     """
@@ -54,6 +52,10 @@ def init():
     if not ok:
         return False
 
+    ok, _ = process("echo 0 > nb_bills")
+    if not ok:
+        return False
+
     ok, _ = process("mkdir -p checks rejected accepted bills")
     return ok
 
@@ -61,41 +63,49 @@ def init():
 def clean():
     """
     """
-    ok, _ = process("rm -rf checks rejected accepted bills banque.pub")
+    ok, _ = process(
+        "rm -rf checks rejected accepted bills banque.pub nb_bills")
     return ok
 
 
 def send_bill(user, amount):
     """
     """
-    global NB_BILLS
-    NB_BILLS += 1
-
+    # Get nb_bills
+    ok, nb_bills = process(f"cat nb_bills")
+    nb_bills = int(nb_bills)
+    if not ok:
+        return False
+    print(1)
     # Création de la facture
     with open("facture.json", "w") as f:
         f.write(json.dumps({
             "shop_name": user["name"],
             "amount": amount,
-            "bill_number": NB_BILLS,
+            "bill_number": nb_bills,
             "shop_signature": user["signature"]
         }))
-
+    print(2)
     # Hashage de la facture + secret du commercant
     ok, hashed = process(
         f"(cat facture.json && echo {user['hashed_secret']}) | sha256sum")
     if not ok:
         return False
     hashed = hashed.split(" ")[0]
-
+    print(3)
     # Archivage de la facture
-    ok, _ = process(f"echo {hashed} > bills/{NB_BILLS}")
+    ok, _ = process(f"echo {hashed} > bills/{nb_bills}")
     if not ok:
         return False
-
+    print(4)
     # Envoi de la facture au client
     ok, _ = process(
-        f"mv facture.json ../client/bills/{user['name']}_{NB_BILLS}.json")
+        f"mv facture.json ../client/bills/{user['name']}_{nb_bills}.json")
 
+    print(ok)
+    if ok:
+        ok, _ = process(f"echo {nb_bills + 1} > nb_bills")
+    print(6)
     return ok
 
 

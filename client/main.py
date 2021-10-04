@@ -55,12 +55,15 @@ def clean():
 def get_bill_file(bill_name):
     """
     """
-    # Convertion de la facture en ditionnaire
-    with open(f"bills/{bill_name}", "r") as f:
-        bill = json.load(f)
+    try:
+        # Convertion de la facture en ditionnaire
+        with open(f"bills/{bill_name}", "r") as f:
+            bill = json.load(f)
 
-    # Vérification du certificat du commercant
-    return verify_signature(bill["shop_signature"], bill['shop_name']), bill
+        # Vérification du certificat du commercant
+        return verify_signature(bill["shop_signature"], bill['shop_name']), bill
+    except FileNotFoundError:
+        return False, {}
 
 
 def send_check(user, to, bill_number):
