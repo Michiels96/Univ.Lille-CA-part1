@@ -1,11 +1,4 @@
 #!/usr/bin/python3
-<<<<<<< HEAD:banque/main.py
-
-#
-#
-#
-=======
->>>>>>> c1b8350af08b524642bf867b53e468977bf577d8:bank/main.py
 
 import subprocess
 import json
@@ -55,12 +48,12 @@ def create_banque():
     if not ok:
         return False
 
-    ok, _ = process("openssl genrsa -out keys/bank.rsa 2048")
+    ok, _ = process("openssl genrsa -out keys/banque.rsa 2048")
     if not ok:
         return False
 
     ok, _ = process(
-        "openssl rsa -in keys/bank.rsa -outform PEM -pubout -out keys/bank.pub")
+        "openssl rsa -in keys/banque.rsa -outform PEM -pubout -out keys/banque.pub")
     return ok
 
 
@@ -99,11 +92,7 @@ def create_user(name):
 
     # Création du certificat du client
     ok, _ = process(
-<<<<<<< HEAD:banque/main.py
         f"echo {name} > name.tmp && openssl dgst -sha1 -sign keys/banque.rsa -out signature.sign name.tmp && rm name.tmp")
-=======
-        f"echo {name} > name.tmp && openssl dgst -sha1 -sign keys/bank.rsa -out certificate.sign name.tmp && rm name.tmp")
->>>>>>> c1b8350af08b524642bf867b53e468977bf577d8:bank/main.py
     if not ok:
         return {}
 
@@ -116,27 +105,8 @@ def create_user(name):
     return {
         "name": name,
         "hashed_secret": hashed_secret,
-<<<<<<< HEAD:banque/main.py
         "banque_pub_key": banque_pub,
         "signature": signature.decode("latin-1")
-=======
-        "certificate": certificate.decode("latin-1")
-    }
-
-
-def create_shop(name):
-    """
-    Creation of a shop with the given name
-    """
-    # Récuperation de la clef publique de la banque
-    ok, banque_pub = process(f"cat keys/bank.pub")
-    if not ok:
-        return {}
-
-    return {
-        "name": name,
-        "banque_pub_key": banque_pub
->>>>>>> c1b8350af08b524642bf867b53e468977bf577d8:bank/main.py
     }
 
 
@@ -212,7 +182,6 @@ if __name__ == "__main__":
         with open("user.json", "w") as f:
             f.write(json.dumps(create_user(sys.argv[2])))
         ok, _ = process(f"mv user.json ../client/")
-        print(ok)
         if ok:
             print("+ Client créé avec succès")
 
