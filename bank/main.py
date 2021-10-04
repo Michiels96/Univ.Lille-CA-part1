@@ -139,7 +139,11 @@ def verify_check(path):
     ok, hashed = hash(
         f"(cat {path} && echo {hashed_secret}) | sha256sum")
 
-    return ok and hashed == os.path.basename(path).split(".")[0]
+    try:
+        os.listdir("accepted").index(f"{hashed}.json")
+        return False
+    except ValueError:
+        return ok and hashed == os.path.basename(path).split(".")[0]
 
 
 def verify_checks():
