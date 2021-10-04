@@ -29,7 +29,7 @@ def verify_signature(signature, message):
 
     # Vérification du certificat du client
     ok, _ = process(
-        f"(echo {message} > from.tmp && openssl dgst -sha1 -verify keys/banque.pub -signature tmp.sign from.tmp)")
+        f"(echo {message} > from.tmp && openssl dgst -sha1 -verify banque.pub -signature tmp.sign from.tmp)")
 
     _, _ = process("rm from.tmp tmp.sign")
 
@@ -40,7 +40,7 @@ def is_bill_exists(bill_number):
     """
     """
     try:
-        os.listdir("checks").index(str(bill_number))
+        os.listdir("bills").index(str(bill_number))
         return True
     except ValueError:
         return False
@@ -49,6 +49,11 @@ def is_bill_exists(bill_number):
 def init():
     """
     """
+    ok, _ = process(
+        f"cat > banque.pub << EOF && echo -e {user['banque_pub_key']}")
+    if not ok:
+        return False
+
     ok, _ = process("mkdir -p checks rejected accepted bills")
     return ok
 
@@ -56,7 +61,7 @@ def init():
 def clean():
     """
     """
-    ok, _ = process("rm -rf checks rejected accepted bills")
+    ok, _ = process("rm -rf checks rejected accepted bills banque.pub")
     return ok
 
 
@@ -88,7 +93,8 @@ def send_bill(user, amount):
         return False
 
     # Envoi de la facture au client
-    ok, _ = process(f"mv facture.json ../client/bills/{hashed}.json")
+    ok, _ = process(
+        f"mv facture.json ../client/bills/{user['name']}_{NB_BILLS}.json")
 
     return ok
 
@@ -102,7 +108,7 @@ def verify_check(user, path):
         check = json.load(f)
 
     # Vérification du certificat du client
-    if not verify_signature(check["signature"], check['from']):
+    if not verify_signature(check["client_signature"], check['from']):
         return False
 
     # Verification de l'existence de la facture
@@ -112,7 +118,7 @@ def verify_check(user, path):
    # Formation de la facture à partir du check
     with open("facture.json", "w") as f:
         f.write(json.dumps({
-            "shop_name": check["shop_name"],
+            "shop_name": check["to"],
             "amount": check["amount"],
             "bill_number": check["bill_number"],
             "shop_signature": check["shop_signature"]
@@ -128,6 +134,8 @@ def verify_check(user, path):
     # Vérification de la facture reconstituée
     ok, _ = process(
         f"echo {hashed} > hashed.tmp && diff hashed.tmp bills/{check['bill_number']}")
+    if ok:
+        _, _ = process(f"rm bills/{check['bill_number']}")
 
     _, _ = process(f"rm hashed.tmp")
 
