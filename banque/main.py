@@ -1,4 +1,4 @@
-#!usr/bin/python3
+#!/usr/bin/python3
 
 #
 #
@@ -28,6 +28,22 @@ def hash(cmd):
     return True, hashed.split(" ")[0]
 
 
+def verify_signature(signature, message):
+    """
+    """
+    # Convertir le certificat en binaire
+    with open("tmp.sign", "wb") as f:
+        f.write(signature.encode("latin-1"))
+
+    # Vérification du certificat du client
+    ok, _ = process(
+        f"(echo {message} > from.tmp && openssl dgst -sha1 -verify keys/banque.pub -signature tmp.sign from.tmp)")
+
+    _, _ = process("rm from.tmp tmp.sign")
+
+    return ok
+
+
 def create_banque():
     """
     Creation of the banque
@@ -53,10 +69,15 @@ def delete_banque():
     return ok
 
 
-def create_client(name):
+def create_user(name):
     """
     Creation of a client with the given name
     """
+    # Récuperation de la clef publique de la banque
+    ok, banque_pub = process(f"cat keys/banque.pub")
+    if not ok:
+        return {}
+
     # Hashage du nom de l'utilisateur
     ok, hashed_name = hash(f"echo {name} | sha256sum")
     if not ok:
@@ -75,35 +96,21 @@ def create_client(name):
 
     # Création du certificat du client
     ok, _ = process(
-        f"echo {name} > name.tmp && openssl dgst -sha1 -sign keys/banque.rsa -out certificate.sign name.tmp && rm name.tmp")
+        f"echo {name} > name.tmp && openssl dgst -sha1 -sign keys/banque.rsa -out signature.sign name.tmp && rm name.tmp")
     if not ok:
         return {}
 
     # Parsing du certificat en un format transportable
-    with open("certificate.sign", "rb") as f:
-        certificate = f.read()
+    with open("signature.sign", "rb") as f:
+        signature = f.read()
 
-    ok, _ = process(f"rm certificate.sign")
+    ok, _ = process(f"rm signature.sign")
 
     return {
         "name": name,
         "hashed_secret": hashed_secret,
-        "certificate": certificate.decode("latin-1")
-    }
-
-
-def create_shop(name):
-    """
-    Creation of a shop with the given name
-    """
-    # Récuperation de la clef publique de la banque
-    ok, banque_pub = process(f"cat keys/banque.pub")
-    if not ok:
-        return {}
-
-    return {
-        "name": name,
-        "banque_pub_key": banque_pub
+        "banque_pub_key": banque_pub,
+        "signature": signature.decode("latin-1")
     }
 
 
@@ -114,6 +121,14 @@ def verify_check(path):
     with open(path, "r") as f:
         check = json.load(f)
 
+    # Verify cient signature
+    if not verify_signature(check["client_signature"], check["from"]):
+        return False
+
+    # Verify shop signature
+    if not verify_signature(check["shop_signature"], check["to"]):
+        return False
+
     # Hashage du nom de l'utilisateur
     ok, hashed_name = hash(f"echo {check['from']} | sha256sum")
     if not ok:
@@ -122,7 +137,7 @@ def verify_check(path):
     # Hashage du secret du client
     ok, hashed_secret = hash(f"cat keys/{hashed_name}.secret | sha256sum")
     if not ok:
-        return {}
+        return False
 
     # Hashage du chèque + secret hashé du client
     ok, hashed = hash(
@@ -169,14 +184,15 @@ if __name__ == "__main__":
 
     elif sys.argv[1] == "client":
         with open("user.json", "w") as f:
-            f.write(json.dumps(create_client(sys.argv[2])))
+            f.write(json.dumps(create_user(sys.argv[2])))
         ok, _ = process(f"mv user.json ../client/")
+        print(ok)
         if ok:
             print("+ Client créé avec succès")
 
     elif sys.argv[1] == "shop":
         with open("user.json", "w") as f:
-            f.write(json.dumps(create_shop(sys.argv[2])))
+            f.write(json.dumps(create_user(sys.argv[2])))
         ok, _ = process(f"mv user.json ../shop/")
         if ok:
             print("+ Commerçant créé avec succès")
