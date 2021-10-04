@@ -105,7 +105,7 @@ def create_user(name):
     return {
         "name": name,
         "hashed_secret": hashed_secret,
-        "banque_pub_key": banque_pub,
+        "banque_pub_key": "\n" + banque_pub,
         "signature": signature.decode("latin-1")
     }
 
